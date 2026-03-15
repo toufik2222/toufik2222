@@ -1,18 +1,23 @@
-name: macOS VNC Final Fix
+name: macOS VNC Black Screen Fix
 on: workflow_dispatch
 jobs:
   mac-vnc:
     runs-on: macos-latest
     steps:
-      - name: Create User and Start VNC
+      - name: Hijack Runner Account and Start VNC
         env:
           USER_PASS: secretpassword
         run: |
-          echo "Creating VNC User..."
-          sudo sysadminctl -addUser vncuser -fullName "VNC User" -password $USER_PASS -admin
+          echo "Changing default runner password..."
+          sudo dscl . -passwd /Users/runner $USER_PASS
+          sudo dscl . -append /Groups/admin GroupMembership runner
           
           echo "Setting up VNC Server..."
           sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate -configure -access -on -clientopts -setvnclegacy -vnclegacy yes -clientopts -setvncpw -vncpw $USER_PASS -restart -agent -privs -all
+          
+          echo "Waking up virtual display..."
+          sudo pmset -a displaysleep 0 screensaver 0
+          caffeinate -u -t 10 &
       
       - name: Start TCP Tunnel
         run: |
@@ -35,7 +40,7 @@ jobs:
           echo "YOUR VNC CONNECTION ADDRESS:"
           grep -o "bore.pub:[0-9]*" bore.log
           echo "VNC Password: secretpassword"
-          echo "macOS Login: vncuser / secretpassword"
+          echo "macOS Login: runner / secretpassword"
           echo "=========================================="
           
           echo "Keeping runner alive for 30 minutes..."
