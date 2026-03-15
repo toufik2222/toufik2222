@@ -9,15 +9,14 @@ jobs:
           USER_PASS: secretpassword
         run: |
           echo "Creating VNC User..."
-          sudo sysadminctl -addUser vncuser -fullName "VNC User" -password $USER_PASS -admin
+          sudo sysadminctl -addUser vncuser -fullName "VNC User" -password $USER_PASS -admin || true
           
           echo "Setting up VNC Server..."
           sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate -configure -access -on -clientopts -setvnclegacy -vnclegacy yes -clientopts -setvncpw -vncpw $USER_PASS -restart -agent -privs -all
           
-          echo "Waking up display and simulating keystroke..."
-          sudo pmset -a displaysleep 0 screensaver 0
-          caffeinate -u -t 10 &
-          osascript -e 'tell application "System Events" to key code 49'
+          echo "Waking up display..."
+          caffeinate -s -u -d -i -t 3600 &
+          osascript -e 'tell application "System Events" to key code 49' || true
       
       - name: Start TCP Tunnel
         run: |
