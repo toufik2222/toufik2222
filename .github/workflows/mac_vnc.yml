@@ -6,7 +6,7 @@ jobs:
     steps:
       - name: Start VNC and Ngrok Tunnel
         env:
-          NGROK_TOKEN: ${{ secrets.NGROK_TOKEN }}
+          NGROK_TOKEN: ${{ secrets.NGROK_TOKEN1 }}
           USER_PASS: secretpassword
         run: |
           echo "Setting up VNC Server..."
