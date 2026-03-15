@@ -1,30 +1,17 @@
-name: macOS VNC Apple ID Fix
+name: macOS VNC via tmate
 on: workflow_dispatch
 jobs:
   mac-vnc:
     runs-on: macos-latest
     steps:
-      - name: Start VNC and Ngrok Tunnel
+      - name: Start VNC Server
         env:
-          NGROK_TOKEN: ${{ secrets.NGROK_TOKEN1 }}
           USER_PASS: secretpassword
         run: |
           echo "Setting up VNC Server..."
           sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate -configure -access -on -clientopts -setvnclegacy -vnclegacy yes -clientopts -setvncpw -vncpw $USER_PASS -restart -agent -privs -all
-          
-          echo "Installing Ngrok..."
-          brew install ngrok/ngrok/ngrok
-          
-          echo "Authenticating and Starting Tunnel..."
-          ngrok config add-authtoken $NGROK_TOKEN
-          ngrok tcp 5900 --log=stdout > ngrok.log &
-          sleep 10
-          
-          echo "=========================================="
-          echo "YOUR VNC CONNECTION ADDRESS:"
-          curl -s localhost:4040/api/tunnels | grep -Eo "tcp://[a-zA-Z0-9.-]+:[0-9]+"
-          echo "VNC Password: secretpassword"
-          echo "=========================================="
-          
-          echo "Keeping runner alive for 30 minutes..."
-          sleep 1800
+      
+      - name: Start tmate Tunnel
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: false
