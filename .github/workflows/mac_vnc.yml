@@ -2,7 +2,7 @@ name: macOS VNC Apple ID Fix
 on: workflow_dispatch
 jobs:
   mac-vnc:
-    runs-on: macos-13
+    runs-on: macos-latest
     steps:
       - name: Start VNC and Ngrok Tunnel
         env:
