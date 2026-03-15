@@ -14,9 +14,10 @@ jobs:
           echo "Setting up VNC Server..."
           sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate -configure -access -on -clientopts -setvnclegacy -vnclegacy yes -clientopts -setvncpw -vncpw $USER_PASS -restart -agent -privs -all
           
-          echo "Logging out default runner to fix black screen..."
-          sudo pkill -9 loginwindow
-          sleep 2
+          echo "Waking up display and simulating keystroke..."
+          sudo pmset -a displaysleep 0 screensaver 0
+          caffeinate -u -t 10 &
+          osascript -e 'tell application "System Events" to key code 49'
       
       - name: Start TCP Tunnel
         run: |
