@@ -1,4 +1,4 @@
-name: macOS VNC via tmate
+name: macOS VNC Final Fix
 on: workflow_dispatch
 jobs:
   mac-vnc:
@@ -11,7 +11,28 @@ jobs:
           echo "Setting up VNC Server..."
           sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate -configure -access -on -clientopts -setvnclegacy -vnclegacy yes -clientopts -setvncpw -vncpw $USER_PASS -restart -agent -privs -all
       
-      - name: Start tmate Tunnel
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: false
+      - name: Start TCP Tunnel
+        run: |
+          echo "Downloading Tunnel Software..."
+          ARCH=$(uname -m)
+          if [ "$ARCH" = "arm64" ]; then
+            URL="https://github.com/ekzhang/bore/releases/download/v0.5.0/bore-v0.5.0-aarch64-apple-darwin.tar.gz"
+          else
+            URL="https://github.com/ekzhang/bore/releases/download/v0.5.0/bore-v0.5.0-x86_64-apple-darwin.tar.gz"
+          fi
+          curl -L -o bore.tar.gz $URL
+          tar -xf bore.tar.gz
+          chmod +x bore
+          
+          echo "Starting Tunnel..."
+          ./bore local 5900 --to bore.pub > bore.log 2>&1 &
+          sleep 5
+          
+          echo "=========================================="
+          echo "YOUR VNC CONNECTION ADDRESS:"
+          grep -o "bore.pub:[0-9]*" bore.log
+          echo "VNC Password: secretpassword"
+          echo "=========================================="
+          
+          echo "Keeping runner alive for 30 minutes..."
+          sleep 1800
