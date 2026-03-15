@@ -4,10 +4,13 @@ jobs:
   mac-vnc:
     runs-on: macos-latest
     steps:
-      - name: Start VNC Server
+      - name: Create User and Start VNC
         env:
           USER_PASS: secretpassword
         run: |
+          echo "Creating VNC User..."
+          sudo sysadminctl -addUser vncuser -fullName "VNC User" -password $USER_PASS -admin
+          
           echo "Setting up VNC Server..."
           sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate -configure -access -on -clientopts -setvnclegacy -vnclegacy yes -clientopts -setvncpw -vncpw $USER_PASS -restart -agent -privs -all
       
@@ -32,6 +35,7 @@ jobs:
           echo "YOUR VNC CONNECTION ADDRESS:"
           grep -o "bore.pub:[0-9]*" bore.log
           echo "VNC Password: secretpassword"
+          echo "macOS Login: vncuser / secretpassword"
           echo "=========================================="
           
           echo "Keeping runner alive for 30 minutes..."
