@@ -1,0 +1,30 @@
+name: macOS VNC Apple ID Fix
+on: workflow_dispatch
+jobs:
+  mac-vnc:
+    runs-on: macos-13
+    steps:
+      - name: Start VNC and Ngrok Tunnel
+        env:
+          NGROK_TOKEN: ${{ secrets.NGROK_TOKEN }}
+          USER_PASS: secretpassword
+        run: |
+          echo "Setting up VNC Server..."
+          sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate -configure -access -on -clientopts -setvnclegacy -vnclegacy yes -clientopts -setvncpw -vncpw $USER_PASS -restart -agent -privs -all
+          
+          echo "Installing Ngrok..."
+          brew install ngrok/ngrok/ngrok
+          
+          echo "Authenticating and Starting Tunnel..."
+          ngrok config add-authtoken $NGROK_TOKEN
+          ngrok tcp 5900 --log=stdout > ngrok.log &
+          sleep 10
+          
+          echo "=========================================="
+          echo "YOUR VNC CONNECTION ADDRESS:"
+          curl -s localhost:4040/api/tunnels | grep -Eo "tcp://[a-zA-Z0-9.-]+:[0-9]+"
+          echo "VNC Password: secretpassword"
+          echo "=========================================="
+          
+          echo "Keeping runner alive for 30 minutes..."
+          sleep 1800
